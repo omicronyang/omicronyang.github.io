@@ -103,6 +103,6 @@ theme: next
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: 'git'
-  repo: https://7e51778d22efe470e55d385e2285275bde6a2f15@github.com/omicronyang/omicronyang.github.io.git
-  branch: master
+  type: git
+  repo: 
+    github: https://github.com/omicronyang/omicronyang.github.io.git,master
