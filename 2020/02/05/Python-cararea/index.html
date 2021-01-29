@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"omicronyang.github.io","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="开发过程中需要制作一个用于输入车牌的选择列表，为了方便输入加入了拼音检索功能，但网上的数据往往只有省份的拼音代码，在此基础上做一些内容的修整">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用Python制作各省市车牌地区代码拼音检索">
+<meta property="og:url" content="http://omicronyang.github.io/2020/02/05/Python-cararea/index.html">
+<meta property="og:site_name" content="OMI&#x3D;v&#x3D;LOG">
+<meta property="og:description" content="开发过程中需要制作一个用于输入车牌的选择列表，为了方便输入加入了拼音检索功能，但网上的数据往往只有省份的拼音代码，在此基础上做一些内容的修整">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-02-05T07:23:20.000Z">
+<meta property="article:modified_time" content="2021-01-29T09:03:08.318Z">
+<meta property="article:author" content="Omicron Yang">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="pypinyin">
+<meta property="article:tag" content="json">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://omicronyang.github.io/2020/02/05/Python-cararea/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>使用Python制作各省市车牌地区代码拼音检索 | OMI=v=LOG</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">OMI=v=LOG</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%95%B0%E6%8D%AE%E4%B8%8B%E8%BD%BD%E4%B8%8E%E9%A2%84%E5%A4%84%E7%90%86"><span class="nav-number">1.</span> <span class="nav-text">数据下载与预处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#python%E8%BF%9B%E8%A1%8C%E7%94%9F%E6%88%90%E6%8B%BC%E9%9F%B3%E5%A4%84%E7%90%86"><span class="nav-number">2.</span> <span class="nav-text">python进行生成拼音处理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="nav-number">3.</span> <span class="nav-text">运行结果</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Omicron Yang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/omicronyang" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;omicronyang" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/omicronyang" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;omicronyang" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://omicronyang.github.io/2020/02/05/Python-cararea/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Omicron Yang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OMI=v=LOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用Python制作各省市车牌地区代码拼音检索<a href="https://github.com/omicronyang/omicronyang.github.io/tree/master/source/_posts/Python-cararea.md" class="post-edit-link" title="编辑" rel="noopener" target="_blank"><i class="fa fa-pen-nib"></i></a>
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-02-05 15:23:20" itemprop="dateCreated datePublished" datetime="2020-02-05T15:23:20+08:00">2020-02-05</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-01-29 17:03:08" itemprop="dateModified" datetime="2021-01-29T17:03:08+08:00">2021-01-29</time>
+      </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Python/" itemprop="url" rel="index"><span itemprop="name">Python</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>开发过程中需要制作一个用于输入车牌的选择列表，为了方便输入加入了拼音检索功能，但网上的数据往往只有省份的拼音代码，在此基础上做一些内容的修整</p>
+<a id="more"></a>
+
+<h2 id="数据下载与预处理"><a href="#数据下载与预处理" class="headerlink" title="数据下载与预处理"></a>数据下载与预处理</h2><p>先从网上下载一个已经制作好的json格式车牌地区数据，我用的是<a target="_blank" rel="noopener" href="https://download.csdn.net/download/bergtang/11058942">全国省市车牌号json数据</a>，其他资源其实大同小异。</p>
+<p>检查了一下文件内容，还是有些地方需要处理的，如少数民族自治州等没有使用<strong>简称</strong>，而是使用了正式名的全称；还有一些车牌是属于直属系统、特殊系统的。这些都需要手动处理，将城市一级的名称统一化。</p>
+<p>处理后的文件内容大致如此：</p>
+<pre class="line-numbers language-json" data-language="json"><code class="language-json">[
+    &#123;
+        &quot;code&quot;: &quot;冀A&quot;,
+        &quot;city&quot;: &quot;石家庄&quot;,
+        &quot;province&quot;: &quot;河北&quot;,
+        &quot;Pcode&quot;: &quot;HB&quot;
+    &#125;,
+    &#123;
+        &quot;code&quot;: &quot;冀B&quot;,
+        &quot;city&quot;: &quot;唐山&quot;,
+        &quot;province&quot;: &quot;河北&quot;,
+        &quot;Pcode&quot;: &quot;HB&quot;
+    &#125;,
+    ...
+    &#123;
+        &quot;code&quot;: &quot;沪R&quot;,
+        &quot;city&quot;: &quot;上海&quot;,
+        &quot;province&quot;: &quot;上海&quot;,
+        &quot;Pcode&quot;: &quot;SH&quot;
+    &#125;
+]</code></pre>
+<h2 id="python进行生成拼音处理"><a href="#python进行生成拼音处理" class="headerlink" title="python进行生成拼音处理"></a>python进行生成拼音处理</h2><p>数据文件本身有 <code>Pcode</code> 字段，只要将它替换成我们要的值就好了。有现成的汉字转拼音库 <code>pypinyin</code> 可以利用，安装和使用都可以参考 <a target="_blank" rel="noopener" href="https://github.com/mozillazg/python-pinyin">汉字拼音转换工具（Python 版）</a>。这里用到两个功能，转换成<strong>不含声调的拼音</strong>和<strong>首字母拼音</strong>，例如：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">&gt;&gt;&gt; from pypinyin import pinyin, Style
+&gt;&gt;&gt; pinyin(&#39;冀A 河北 石家庄&#39;,style&#x3D;Style.NORMAL)
+[[&#39;ji&#39;], [&#39;A &#39;], [&#39;he&#39;], [&#39;bei&#39;], [&#39; &#39;], [&#39;shi&#39;], [&#39;jia&#39;], [&#39;zhuang&#39;]]
+&gt;&gt;&gt; pinyin(&#39;冀A 河北 石家庄&#39;,style&#x3D;Style.FIRST_LETTER)
+[[&#39;j&#39;], [&#39;A &#39;], [&#39;h&#39;], [&#39;b&#39;], [&#39; &#39;], [&#39;s&#39;], [&#39;j&#39;], [&#39;z&#39;]]</code></pre>
+<p>由于文件中含有中文，还有几个地方要注意：</p>
+<ul>
+<li>文件的读写需要指定编码 <code>encoding=&#39;UTF-8&#39;</code>，否则报错 <code>&#39;gbk&#39; codec can&#39;t decode byte .... in position .. : illegal multibyte sequence</code></li>
+<li><code>dump</code> 操作时需要注意 <code>ensure_ascii=False</code> ，否则中文字符会被替换成ASCII字符</li>
+</ul>
+<p>完整代码：</p>
+<pre class="line-numbers language-python" data-language="python"><code class="language-python">from pypinyin import pinyin, Style
+import json
+
+# 读取json文件
+file &#x3D; &#39;car_area.json&#39;
+fs &#x3D; open(file, &#39;r&#39;, encoding&#x3D;&#39;UTF-8&#39;)
+dlist &#x3D; json.load(fs)
+fs.close()
+
+# 对内容进行处理
+for dist in dlist:
+    pcodestr &#x3D; &#39;%s %s %s&#39;%(dist[&#39;code&#39;],dist[&#39;city&#39;],dist[&#39;province&#39;])
+    pcode &#x3D; &#39;&#39;
+    # 不要声调符号的拼音
+    pystr &#x3D; pinyin(pcodestr, style&#x3D;Style.NORMAL)
+    for ilist in pystr:
+        pcode +&#x3D; ilist[0]
+    pcode +&#x3D; &#39; &#39;
+    # 首字母拼音
+    pystr &#x3D; pinyin(pcodestr, style&#x3D;Style.FIRST_LETTER)
+    for ilist in pystr:
+        pcode +&#x3D; ilist[0]
+    # 转大写
+    pcode&#x3D;pcode.upper()
+    dist[&#39;Pcode&#39;] &#x3D; pcode
+
+# 输出到json文件
+file &#x3D; &#39;car_area_new.json&#39;
+fs &#x3D; open(file, &#39;w&#39;, encoding&#x3D;&#39;UTF-8&#39;)
+json.dump(dlist, fs, ensure_ascii&#x3D;False)
+fs.close()</code></pre>
+<h2 id="运行结果"><a href="#运行结果" class="headerlink" title="运行结果"></a>运行结果</h2><pre class="line-numbers language-json" data-language="json"><code class="language-json">[
+    &#123;
+        &quot;code&quot;: &quot;冀A&quot;,
+        &quot;city&quot;: &quot;石家庄&quot;,
+        &quot;province&quot;: &quot;河北&quot;,
+        &quot;Pcode&quot;: &quot;JIA SHIJIAZHUANG HEBEI JA SJZ HB&quot;
+    &#125;,
+    &#123;
+        &quot;code&quot;: &quot;冀B&quot;,
+        &quot;city&quot;: &quot;唐山&quot;,
+        &quot;province&quot;: &quot;河北&quot;,
+        &quot;Pcode&quot;: &quot;JIB TANGSHAN HEBEI JB TS HB&quot;
+    &#125;,
+    ...
+    &#123;
+        &quot;code&quot;: &quot;沪R&quot;,
+        &quot;city&quot;: &quot;上海&quot;,
+        &quot;province&quot;: &quot;上海&quot;,
+        &quot;Pcode&quot;: &quot;HUR SHANGHAI SHANGHAI HR SH SH&quot;
+    &#125;
+]</code></pre>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"><i class="fa fa-tag"></i> python</a>
+              <a href="/tags/pypinyin/" rel="tag"><i class="fa fa-tag"></i> pypinyin</a>
+              <a href="/tags/json/" rel="tag"><i class="fa fa-tag"></i> json</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/01/23/Setup-SublimeText/" rel="prev" title="设置-Sublime Text 3 开发环境">
+                  <i class="fa fa-chevron-left"></i> 设置-Sublime Text 3 开发环境
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/05/27/EcoDelivery-Deploy/" rel="next" title="EcoDelivery 系统部署在腾讯云">
+                  EcoDelivery 系统部署在腾讯云 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-train"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Omicron Yang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.22.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1.16.0/dist/lozad.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

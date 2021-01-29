@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.3.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
+
+<script class="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"omicronyang.github.io","root":"/","images":"/images","scheme":"Gemini","version":"8.2.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":true,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":true,"mediumzoom":false,"lazyload":true,"pangu":true,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":true,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}};
+  </script>
+<meta name="description" content="EcoDelivery 智慧物流配送项目，采用 Flask 架构搭建。本文以腾讯云服务器为例，讲解部署流程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EcoDelivery 系统部署在腾讯云">
+<meta property="og:url" content="http://omicronyang.github.io/2020/05/27/EcoDelivery-Deploy/index.html">
+<meta property="og:site_name" content="OMI&#x3D;v&#x3D;LOG">
+<meta property="og:description" content="EcoDelivery 智慧物流配送项目，采用 Flask 架构搭建。本文以腾讯云服务器为例，讲解部署流程。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-05-27T12:37:57.000Z">
+<meta property="article:modified_time" content="2021-01-29T09:03:08.318Z">
+<meta property="article:author" content="Omicron Yang">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="flask">
+<meta property="article:tag" content="nginx">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="http://omicronyang.github.io/2020/05/27/EcoDelivery-Deploy/">
+
+
+<script class="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+<title>EcoDelivery 系统部署在腾讯云 | OMI=v=LOG</title>
+  
+
+
+
+
+  <noscript>
+  <style>
+  body { margin-top: 2rem; }
+
+  .use-motion .menu-item,
+  .use-motion .sidebar,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header {
+    visibility: visible;
+  }
+
+  .use-motion .header,
+  .use-motion .site-brand-container .toggle,
+  .use-motion .footer { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle,
+  .use-motion .custom-logo-image {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line {
+    transform: scaleX(1);
+  }
+
+  .search-pop-overlay, .sidebar-nav { display: none; }
+  .sidebar-panel { display: block; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">OMI=v=LOG</h1>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%AE%9E%E4%BE%8B"><span class="nav-number">1.</span> <span class="nav-text">服务器实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E6%9C%AC%E4%BF%A1%E6%81%AF"><span class="nav-number">1.1.</span> <span class="nav-text">基本信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%80%E6%94%BE%E7%AB%AF%E5%8F%A3"><span class="nav-number">1.2.</span> <span class="nav-text">开放端口</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-Python-3-7-5"><span class="nav-number">2.</span> <span class="nav-text">安装 Python 3.7.5</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E4%BE%9D%E8%B5%96%E7%8E%AF%E5%A2%83"><span class="nav-number">2.1.</span> <span class="nav-text">安装依赖环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8B%E8%BD%BD-Python-3-7-5"><span class="nav-number">2.2.</span> <span class="nav-text">下载 Python 3.7.5</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BC%96%E8%AF%91%E5%AE%89%E8%A3%85"><span class="nav-number">2.3.</span> <span class="nav-text">编译安装</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E9%A1%B9%E7%9B%AE%E6%96%87%E4%BB%B6"><span class="nav-number">3.</span> <span class="nav-text">安装项目文件</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9B%E5%BB%BA%E9%A1%B9%E7%9B%AE%E7%9B%AE%E5%BD%95"><span class="nav-number">3.1.</span> <span class="nav-text">创建项目目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%8D%E5%88%B6%E9%A1%B9%E7%9B%AE%E6%96%87%E4%BB%B6"><span class="nav-number">3.2.</span> <span class="nav-text">复制项目文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E8%99%9A%E6%8B%9F%E7%8E%AF%E5%A2%83"><span class="nav-number">3.3.</span> <span class="nav-text">安装虚拟环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-Flask-%E5%8F%8A%E9%A1%B9%E7%9B%AE%E4%BE%9D%E8%B5%96%E9%A1%B9"><span class="nav-number">3.4.</span> <span class="nav-text">安装 Flask 及项目依赖项</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AE-uWSGI"><span class="nav-number">4.</span> <span class="nav-text">安装并配置 uWSGI</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-uWSGI"><span class="nav-number">4.1.</span> <span class="nav-text">安装 uWSGI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8-uWSGI"><span class="nav-number">4.2.</span> <span class="nav-text">启动 uWSGI</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE-uWSGI-%E5%BC%80%E6%9C%BA%E5%90%AF%E5%8A%A8"><span class="nav-number">4.3.</span> <span class="nav-text">设置 uWSGI 开机启动</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E8%A3%85%E5%B9%B6%E9%85%8D%E7%BD%AE-Nginx"><span class="nav-number">5.</span> <span class="nav-text">安装并配置 Nginx</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-Nginx"><span class="nav-number">5.1.</span> <span class="nav-text">安装 Nginx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%85%8D%E7%BD%AE-Nginx"><span class="nav-number">5.2.</span> <span class="nav-text">配置 Nginx</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE-Nginx-%E6%9C%8D%E5%8A%A1%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0"><span class="nav-number">5.3.</span> <span class="nav-text">设置 Nginx 服务启动参数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B3%BB%E7%BB%9F%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">6.</span> <span class="nav-text">系统初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">6.1.</span> <span class="nav-text">初始化数据库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96%E5%9C%B0%E5%9B%BE"><span class="nav-number">6.2.</span> <span class="nav-text">初始化地图</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Omicron Yang</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/omicronyang" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;omicronyang" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i></a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://weibo.com/omicronyang" title="Weibo → https:&#x2F;&#x2F;weibo.com&#x2F;omicronyang" rel="noopener" target="_blank"><i class="fab fa-weibo fa-fw"></i></a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+        <div class="back-to-top animated" role="button">
+          <i class="fa fa-arrow-up"></i>
+          <span>0%</span>
+        </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://omicronyang.github.io/2020/05/27/EcoDelivery-Deploy/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Omicron Yang">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="OMI=v=LOG">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          EcoDelivery 系统部署在腾讯云<a href="https://github.com/omicronyang/omicronyang.github.io/tree/master/source/_posts/EcoDelivery-Deploy.md" class="post-edit-link" title="编辑" rel="noopener" target="_blank"><i class="fa fa-pen-nib"></i></a>
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2020-05-27 20:37:57" itemprop="dateCreated datePublished" datetime="2020-05-27T20:37:57+08:00">2020-05-27</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-01-29 17:03:08" itemprop="dateModified" datetime="2021-01-29T17:03:08+08:00">2021-01-29</time>
+      </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>EcoDelivery 智慧物流配送项目，采用 Flask 架构搭建。本文以腾讯云服务器为例，讲解部署流程。</p>
+<a id="more"></a>
+
+<h1 id="服务器实例"><a href="#服务器实例" class="headerlink" title="服务器实例"></a>服务器实例</h1><h2 id="基本信息"><a href="#基本信息" class="headerlink" title="基本信息"></a>基本信息</h2><ul>
+<li>区域：重庆一区</li>
+<li>CPU：1核</li>
+<li>RAM：1GB</li>
+<li>公网带宽：1Mbps</li>
+<li>操作系统：CentOS 7.2 64位</li>
+</ul>
+<h2 id="开放端口"><a href="#开放端口" class="headerlink" title="开放端口"></a>开放端口</h2><p>调试过程中会用到<code>9090</code>端口和<code>9091</code>端口（仅作示例，可任意指定）。在腾讯云服务器上需要手动配置安全组开放端口。步骤如下：</p>
+<ol>
+<li><p>打开控制台，找到“实例”页面，找到相应的云服务器实例</p>
+</li>
+<li><p>在表格中最右侧的“操作”列，找到“更多”-“安全组”-“配置安全组”</p>
+</li>
+<li><p>点击启用的安全组的名称，进入安全组规则设置页面</p>
+</li>
+<li><p>在“安全组规则”-“入站规则”选项卡中，点击“添加规则”</p>
+</li>
+<li><p>添加两条规则，内容如下。</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>来源</th>
+<th>协议端口</th>
+<th>策略</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>自定义</td>
+<td>0.0.0.0/0</td>
+<td>9090</td>
+<td>允许</td>
+</tr>
+<tr>
+<td>自定义</td>
+<td>0.0.0.0/0</td>
+<td>9091</td>
+<td>允许</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>添加后点击“完成”</p>
+</li>
+</ol>
+<h1 id="安装-Python-3-7-5"><a href="#安装-Python-3-7-5" class="headerlink" title="安装 Python 3.7.5"></a>安装 Python 3.7.5</h1><h2 id="安装依赖环境"><a href="#安装依赖环境" class="headerlink" title="安装依赖环境"></a>安装依赖环境</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# yum install gcc-c++
+[root@VM ~]# yum -y install -y lsb
+[root@VM ~]# yum -y install -y libXScrnSaver
+[root@VM ~]# yum -y install zlib-devel bzip2-devel openssl-devel ncurses-devel sqlite-devel readline-devel tk-devel gdbm-devel db4-devel libpcap-devel xz-devel libffi-devel</code></pre>
+<h2 id="下载-Python-3-7-5"><a href="#下载-Python-3-7-5" class="headerlink" title="下载 Python 3.7.5"></a>下载 Python 3.7.5</h2><p>从官网下载：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# wget https:&#x2F;&#x2F;www.python.org&#x2F;ftp&#x2F;python&#x2F;3.7.5&#x2F;Python-3.7.5.tgz</code></pre>
+<p><em>如果官网下载速度不理想，可以使用国内镜像源代替：</em></p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# wget https:&#x2F;&#x2F;mirrors.huaweicloud.com&#x2F;python&#x2F;3.7.5&#x2F;Python-3.7.5.tgz</code></pre>
+<p>下载完成后解压源代码</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# tar -xvzf Python-3.7.5.tgz
+[root@VM ~]# cd Python-3.7.5&#x2F;</code></pre>
+<h2 id="编译安装"><a href="#编译安装" class="headerlink" title="编译安装"></a>编译安装</h2><p>添加配置信息</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# .&#x2F;configure --prefix&#x3D;&#x2F;usr&#x2F;python3 --enable-optimizations --with-ssl</code></pre>
+<p>编译并安装（<strong>需要的时间较长，视系统配置需要十分钟左右</strong>）</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# make &amp;&amp; make install</code></pre>
+<p>设置软链接</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# ln -s &#x2F;usr&#x2F;python3&#x2F;bin&#x2F;python3 &#x2F;usr&#x2F;bin&#x2F;python3
+[root@VM Python-3.7.5]# ln -s &#x2F;usr&#x2F;python3&#x2F;bin&#x2F;pip3 &#x2F;usr&#x2F;bin&#x2F;pip3</code></pre>
+<p>检查安装版本</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# python3 --version</code></pre>
+<p>升级pip3</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# pip3 install --upgrade pip</code></pre>
+<p><em>如果官网下载速度不理想，可以使用国内镜像源代替：</em></p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# pip3 install -i --upgrade pip</code></pre>
+<p>(可选)将pip3安装源设置为国内镜像:</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM Python-3.7.5]# pip3 config set global.index-url https:&#x2F;&#x2F;pypi.tuna.tsinghua.edu.cn&#x2F;simple</code></pre>
+<h1 id="安装项目文件"><a href="#安装项目文件" class="headerlink" title="安装项目文件"></a>安装项目文件</h1><h2 id="创建项目目录"><a href="#创建项目目录" class="headerlink" title="创建项目目录"></a>创建项目目录</h2><p>回到根目录创建项目文件夹<code>/root/ecodelivery</code></p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# mkdir ecodelivery
+[root@VM ~]# cd ecodelivery</code></pre>
+<h2 id="复制项目文件"><a href="#复制项目文件" class="headerlink" title="复制项目文件"></a>复制项目文件</h2><p>将项目文件复制到 <code>/root/ecodelivery</code> 文件夹下</p>
+<h2 id="安装虚拟环境"><a href="#安装虚拟环境" class="headerlink" title="安装虚拟环境"></a>安装虚拟环境</h2><p>安装virtualenv</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ecodelivery]# pip3 install virtualenv</code></pre>
+<p>创建虚拟环境</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ecodelivery]# &#x2F;usr&#x2F;python3&#x2F;bin&#x2F;virtualenv venv</code></pre>
+<p>激活虚拟环境</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ecodelivery]# source venv&#x2F;bin&#x2F;activate</code></pre>
+<h2 id="安装-Flask-及项目依赖项"><a href="#安装-Flask-及项目依赖项" class="headerlink" title="安装 Flask 及项目依赖项"></a>安装 Flask 及项目依赖项</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">(venv) [root@VM ecodelivery]# pip install -r requirements.txt</code></pre>
+<h1 id="安装并配置-uWSGI"><a href="#安装并配置-uWSGI" class="headerlink" title="安装并配置 uWSGI"></a>安装并配置 uWSGI</h1><h2 id="安装-uWSGI"><a href="#安装-uWSGI" class="headerlink" title="安装 uWSGI"></a>安装 uWSGI</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">(venv) [root@VM ecodelivery]# pip install uwsgi</code></pre>
+<p>测试 uWSGI 是否安装成功：</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">(venv) [root@VM ecodelivery]# uwsgi --http :9090 --wsgi-file uwsgi-test.py</code></pre>
+<p>访问服务器公网ip的9090端口，若显示“Hello World!”字样，说明端口可以正常访问，且 uWSGI 配置正确。</p>
+<h2 id="启动-uWSGI"><a href="#启动-uWSGI" class="headerlink" title="启动 uWSGI"></a>启动 uWSGI</h2><p>uWSGI 相关配置在项目文件夹内的 uwsgi.ini 文件内，项目打包发布时已经做了基本配置，可根据需要自行修改</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">(venv) [root@VM ecodelivery]# uwsgi --ini uwsgi.ini</code></pre>
+<p>如果希望退出SSH会话后系统仍然提供服务，请使用<code>nohup</code>命令启动</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">(venv) [root@VM ecodelivery]# nohup uwsgi --ini uwsgi.ini</code></pre>
+<h2 id="设置-uWSGI-开机启动"><a href="#设置-uWSGI-开机启动" class="headerlink" title="设置 uWSGI 开机启动"></a>设置 uWSGI 开机启动</h2><p>赋予uwsgi服务管理脚本可执行权限</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# chmod -x &#x2F;root&#x2F;ecodelivery&#x2F;uwsgid.sh</code></pre>
+<p>将服务配置文件复制到<code>systemd</code>配置文件夹下，赋予754权限</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# cd &#x2F;usr&#x2F;lib&#x2F;systemd&#x2F;system
+[root@VM system]# cp &#x2F;root&#x2F;ecodelivery&#x2F;uwsgid.service uwsgid.service
+[root@VM system]# chmod 754 uwsgid.service</code></pre>
+<p>开启服务</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# systemctl enable uwsgid.service</code></pre>
+<h1 id="安装并配置-Nginx"><a href="#安装并配置-Nginx" class="headerlink" title="安装并配置 Nginx"></a>安装并配置 Nginx</h1><h2 id="安装-Nginx"><a href="#安装-Nginx" class="headerlink" title="安装 Nginx"></a>安装 Nginx</h2><pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# yum install nginx</code></pre>
+<p>检查 Nginx 安装版本</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# nginx -V</code></pre>
+<h2 id="配置-Nginx"><a href="#配置-Nginx" class="headerlink" title="配置 Nginx"></a>配置 Nginx</h2><p>Nginx 相关配置在项目文件夹内的 <code>ecodelivery.conf</code> 文件内，运行前请打开并修改其中的 <code>server_name</code> 项为自己的服务器公网ip</p>
+<p>运行 Nginx 进行测试</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# nginx -c &#x2F;root&#x2F;ecodelivery&#x2F;ecodelivery.conf</code></pre>
+<p>打开浏览器，访问服务器的 <code>9090</code> 端口，如果能正常显示系统登录页面，说明安装配置正确。否则请检查之前步骤中的错误。</p>
+<h2 id="设置-Nginx-服务启动参数"><a href="#设置-Nginx-服务启动参数" class="headerlink" title="设置 Nginx 服务启动参数"></a>设置 Nginx 服务启动参数</h2><p>打开<code>/lib/systemd/system/nginx.service</code>文件，找到其中的<code>ExecStart</code>项，在原来的命令后面添加<br><code> -c /root/ecodlivery/ecodelivery.conf</code>参数，以使用项目指定的配置文件启动 Nginx</p>
+<h1 id="系统初始化"><a href="#系统初始化" class="headerlink" title="系统初始化"></a>系统初始化</h1><h2 id="初始化数据库"><a href="#初始化数据库" class="headerlink" title="初始化数据库"></a>初始化数据库</h2><p>打开项目文件夹，进入虚拟环境，执行命令</p>
+<pre class="line-numbers language-shell" data-language="shell"><code class="language-shell">[root@VM ~]# cd &#x2F;root&#x2F;ecodelivery
+[root@VM ecodelivery]# source venv&#x2F;bin&#x2F;activate
+[root@VM ecodelivery]# flask initdb</code></pre>
+<p>生成的默认管理员工号为<code>0000</code>，密码为<code>123456</code>，请进入系统后尽快修改密码</p>
+<h2 id="初始化地图"><a href="#初始化地图" class="headerlink" title="初始化地图"></a>初始化地图</h2><p>对数据库进行初始化后，由于所有路点的默认初始坐标为<code>(0,0)</code>，在地图上无法正常显示，需要对地图上的点进行位置初始化：</p>
+<ol>
+<li>以管理员身份登录系统，打开“地图管理”</li>
+<li>在“地图概览”一栏中点击“编辑”按钮，进入地图编辑模式</li>
+<li>点击“手动”按钮，切换到自动布局模式，此时路网会依据力引导布局算法自动布局，待稳定后保存路网即可。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/python/" rel="tag"><i class="fa fa-tag"></i> python</a>
+              <a href="/tags/flask/" rel="tag"><i class="fa fa-tag"></i> flask</a>
+              <a href="/tags/nginx/" rel="tag"><i class="fa fa-tag"></i> nginx</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/02/05/Python-cararea/" rel="prev" title="使用Python制作各省市车牌地区代码拼音检索">
+                  <i class="fa fa-chevron-left"></i> 使用Python制作各省市车牌地区代码拼音检索
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      const activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      const commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-train"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Omicron Yang</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <script src="//cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.22.0/components/prism-core.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1.22.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/@fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/lozad@1.16.0/dist/lozad.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/pangu@4.0.7/dist/browser/pangu.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>
