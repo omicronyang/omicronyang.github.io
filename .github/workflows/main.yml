@@ -21,7 +21,7 @@ jobs:
         ref: master
 
     - name: Get Date
-        run: echo "UPDATE_TIME=$(TZ=':Asia/Shanghai' date '+%Y-%m-%d %T')" >> $GITHUB_ENV
+      run: echo "UPDATE_TIME=$(TZ=':Asia/Shanghai' date '+%Y-%m-%d %T')" >> $GITHUB_ENV
  
     - name: Setup Node # 安装 Node.js
       uses: actions/setup-node@v1
