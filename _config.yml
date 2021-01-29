@@ -105,4 +105,4 @@ theme: next
 deploy:
   type: git
   repo: 
-    github: https://c0249f6814471ab6d08e07e99917551deb7d6bbe@github.com/omicronyang/omicronyang.github.io.git,master
+    github: git@github.com:omicronyang/omicronyang.github.io.git,master
