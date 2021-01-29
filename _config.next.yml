@@ -296,8 +296,8 @@ related_posts:
 # Easily browse and edit blog source code online.
 post_edit:
   enable: true
-  url: https://github.com/omicronyang/omicronyang.github.io/tree/branch-name/subdirectory-name/ # Link for view source
-  #url: https://github.com/omicronyang/omicronyang.github.io/edit/branch-name/subdirectory-name/ # Link for fork & edit
+  url: https://github.com/omicronyang/omicronyang.github.io/tree/master/source/ # Link for view source
+  #url: https://github.com/omicronyang/omicronyang.github.io/edit/master/source/ # Link for fork & edit
 
 # Show previous post and next post in post footer if exists
 # Available values: left | right | false
