@@ -106,4 +106,4 @@ deploy:
   type: git
   repo: 
     github: git@github.com:omicronyang/omicronyang.github.io.git,site
-    gitee: git@gitee.com:omicron/Omicron.git,site
+    # gitee: git@gitee.com:omicron/Omicron.git,site

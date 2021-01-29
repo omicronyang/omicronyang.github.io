@@ -19,6 +19,9 @@ jobs:
       uses: actions/checkout@v2
       with:
         ref: master
+
+    - name: Get Date
+        run: echo "UPDATE_TIME=$(TZ=':Asia/Shanghai' date '+%Y-%m-%d %T')" >> $GITHUB_ENV
  
     - name: Setup Node # 安装 Node.js
       uses: actions/setup-node@v1
@@ -44,7 +47,8 @@ jobs:
       uses: sma11black/hexo-action@v1.0.3
       with:
        deploy_key: ${{ secrets.HEXO_DEPLOY_KEY }}
-       user_name: omi_bot 
+       user_name: omi_bot
+       commit_msg: site update ${{env.UPDATE_TIME}}
     - name: Get output
       run: |
        echo "${{steps.deploy.outputs.notify }}"
